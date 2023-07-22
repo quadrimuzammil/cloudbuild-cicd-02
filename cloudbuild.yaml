@@ -7,6 +7,10 @@ steps:
   args: ['echo', 'Hello world!']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build','-t','gcr.io/${_PROJECT}/${_CONTAINERNAME}:${_VERSION}','.']
+  logsBucket: 'gs://git_bash/terraform'
+serviceAccount: 'projects/PROJECT_ID/serviceAccounts/SERVICE_ACCOUNT'
+options:
+  logging: GCS_ONLY
 
 #Push the image  
 - name: 'gcr.io/cloud-builders/docker'
