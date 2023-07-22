@@ -2,7 +2,14 @@ steps:
 #First Clone from Google Cloud Source Repository  
 - name: 'gcr.io/cloud-builders/git'
   args: ['clone','https://source.developers.google.com/p/${_PROJECT}/r/${_REPO_NAME}']
-
+# configurations
+steps:
+- name: 'bash'
+  args: ['echo', 'Hello world!']
+logsBucket: 'git_bash/terraform'
+serviceAccount: 'git-bash@git-jbash-123.iam.gserviceaccount.com'
+options:
+  logging: GCS_ONLY
 #Build the image 
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build','-t','gcr.io/${_PROJECT}/${_CONTAINERNAME}:${_VERSION}','.']
@@ -28,6 +35,7 @@ substitutions:
     _ZONE: us-central1-a
     _GKE_CLUSTER: cloudbuildcluster
     
+
     #Repository Specific configuration. DevOps can change this settings
     _DEPLOYMENTNAME: hello-world-service
     _CONTAINERNAME: hello-world-service    
