@@ -1,47 +1,32 @@
 steps:
-#First Clone from Google Cloud Source Repository  
-- name: 'gcr.io/cloud-builders/git'
-  args: ['clone','https://source.developers.google.com/p/${_PROJECT}/r/${_REPO_NAME}']
-# configurations
-- name: 'bash'
-  args: ['echo', 'Hello world!']
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build','-t','gcr.io/${_PROJECT}/${_CONTAINERNAME}:${_VERSION}','.']
-  logsBucket: 'gs://git_bash/terraform'
-serviceAccount: 'projects/PROJECT_ID/serviceAccounts/SERVICE_ACCOUNT'
-options:
-  logging: GCS_ONLY
+  - name: 'gcr.io/cloud-builders/git'
+    args: ['clone', 'https://source.developers.google.com/p/${_PROJECT}/r/${_REPO_NAME}']
 
-#Push the image  
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['push','gcr.io/${_PROJECT}/${_CONTAINERNAME}:${_VERSION}']
-  
-#Update the container image using kubectl set
-- name: 'gcr.io/cloud-builders/kubectl'
-  args:
-  - 'set'
-  - 'image'
-  - 'deployment/${_DEPLOYMENTNAME}'
-  - '${_CONTAINERNAME}=gcr.io/${_PROJECT}/${_CONTAINERNAME}:${_VERSION}'
-  env:
-  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
-  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-  
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/${_PROJECT}/pyproject:${_VERSION}', '.']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/${_PROJECT}/pyproject:${_VERSION}']
+
+  - name: 'gcr.io/cloud-builders/gke-deploy'
+    args: 
+    - 'apply'
+    - '--filename=${_FILE_PATH}'
+    - '--location=${_LOCATION}'
+    # - '--image=${_IMAGE_NAME}'
+    - '--cluster=${_CLUSTER_NAME}'
+
+images:
+  - "${_IMAGE_NAME}:${_VERSION}"
 substitutions:
-    #GCP Specific configuration. Please DON'T change anything
-    _PROJECT: git bash 1
-    _ZONE: us-central1-a
-    _GKE_CLUSTER: cloudbuildcluster
-    
+   _PROJECT: git-jbash-123
+   _REPO_NAME: cloudbuild-cicd-02
+   _FILE_PATH: pyapp.yaml
+   _LOCATION: us-central1-c
+   _IMAGE_NAME: gcr.io/git-jbash-123/pyproject
+   _CLUSTER_NAME: cloudbuildcluster
+   _VERSION: v8.0
 
-    #Repository Specific configuration. DevOps can change this settings
-    _DEPLOYMENTNAME: hello-world-service
-    _CONTAINERNAME: hello-world-service    
-    _REPO_NAME: cloudbuild-cicd-02
-    
-    # Developers ONLY change
-    _VERSION: v1.0
-    
 options:
-    substitution_option: 'ALLOW_LOOSE'
-
+    # substitutions_option: 'ALLOW_LOOSE'
+    logging: 'CLOUD_LOGGING_ONLY'
